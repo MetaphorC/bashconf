@@ -629,7 +629,7 @@ function __setprompt
 	fi
 
 	# Date
-	PS1+="\[${DARKGRAY}\](\[${CYAN}\]\$(date +%a) $(date +%b-'%-m')" # Date
+	PS1+="\[${DARKGRAY}\](\[${CYAN}\]\$(date +%a) $(date +%b-'%-d')" # Date
 	PS1+="${BLUE} $(date +'%-I':%M:%S%P)\[${DARKGRAY}\])-" # Time
 
 	# CPU
@@ -664,11 +664,48 @@ function __setprompt
 	# Skip to the next line
 	PS1+="\n"
 
-	if [[ $EUID -ne 0 ]]; then
-		PS1+="\[${GREEN}\]>\[${NOCOLOR}\] " # Normal user
-	else
-		PS1+="\[${RED}\]>\[${NOCOLOR}\] " # Root user
-	fi
+  # Git Status - Only run inside a git repo
+    if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        local BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+        local GIT_STATUS=""
+
+        # Apply bold styling to the branch name
+        BRANCH="\[${BOLD}${GREEN}\]${BRANCH}\[${NOCOLOR}\]"
+
+        # Detect changes
+        if git diff --quiet --cached && git diff --quiet; then
+            GIT_STATUS="\[${GREEN}\]✔"  # ✅ Everything committed
+        else
+            GIT_STATUS="\[${RED}\]✖"    # ❌ Uncommitted changes
+        fi
+
+
+	    if [[ $EUID -ne 0 ]]; then
+		    PS1+="\[${GREEN}\]>\[${NOCOLOR}\] " # Normal user
+	    else
+		    PS1+="\[${RED}\]>\[${NOCOLOR}\] " # Root user
+	    fi
+
+ 
+        PS1+="(\[${BOLD}\]${BRANCH} ${GIT_STATUS}\[${NOCOLOR}\])"
+    
+
+	    if [[ $EUID -ne 0 ]]; then
+		    PS1+="\[${GREEN}\]:\[${NOCOLOR}\] " # Normal user
+	    else
+		    PS1+="\[${RED}\]:\[${NOCOLOR}\] " # Root user
+	    fi
+    
+    else
+
+	    if [[ $EUID -ne 0 ]]; then
+		    PS1+="\[${GREEN}\]>\[${NOCOLOR}\] " # Normal user
+	    else
+		    PS1+="\[${RED}\]>\[${NOCOLOR}\] " # Root user
+	    fi
+    fi
+
+
 
 	# PS2 is used to continue a command using the \ character
 	PS2="\[${DARKGRAY}\]>\[${NOCOLOR}\] "
@@ -700,4 +737,9 @@ if [ -f "/home/spidy/miniforge3/etc/profile.d/mamba.sh" ]; then
     . "/home/spidy/miniforge3/etc/profile.d/mamba.sh"
 fi
 # <<< conda initialize <<<
+
+
+export PATH=$PATH:/home/spidy/.spicetify
+
+
 
